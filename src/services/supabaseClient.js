@@ -1,4 +1,3 @@
-
 // #################################################################
 // ##              CLIENTE DE CONEXIÓN A SUPABASE                 ##
 // ##                                                             ##
@@ -6,21 +5,11 @@
 // ## y exporta el cliente para que sea usado en toda la app.     ##
 // #################################################################
 
-// Importamos la función 'createClient' desde la librería de Supabase.
-// Para que esto funcione, necesitaremos instalarla. Te indicaré cómo.
 import { createClient } from '@supabase/supabase-js';
 
-// --- ¡IMPORTANTE! ---
-// Estas son las variables que debes reemplazar con tus propias
-// credenciales de Supabase. Las encuentras en el panel de tu
-// proyecto: "Project Settings" > "API".
-
-const supabaseUrl = 'YOUR_SUPABASE_URL';             // <-- Pega aquí tu URL
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';      // <-- Pega aquí tu clave anónima (public)
+// --- Credenciales de tu proyecto Supabase ---
+const supabaseUrl = 'https://fkrawpxgkuciofjvtttr.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrcmF3cHhna3VjaW9manZ0dHRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MDA1NDEsImV4cCI6MjA3MjM3NjU0MX0.T0VUiIBJ04iDq8Vk7bMzAdFHUVyCBFkgppmw2DwTGY8';
 
 // Creamos una única instancia del cliente de Supabase.
-// Esta instancia será "el puente" a nuestra base de datos.
 export const supabase = createClient(supabaseUrl, supabaseKey);
-
-// "export" permite que otros archivos puedan importar y usar
-// esta constante "supabase" para hacer consultas a la base de datos.
