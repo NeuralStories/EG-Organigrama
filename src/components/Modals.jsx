@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { LoaderIcon, CopyIcon } from './Icons.jsx';
+import React, { useState, useEffect } from 'react';
+import { supabaseClient } from '../services/supabaseClient.js';
+import { useAutosizeTextArea } from '../hooks/useAutosizeTextArea.js';
 
-// --- TU COMPONENTE CONFIRMATIONMODAL ---
+// --- TU COMPONENTE MODALS (Extraído directamente de tu código) ---
 export const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
     return (
-        <div className="modal-overlay">
-            <div className="modal-content text-center">
-                <p className="mb-4">{message}</p>
-                <div className="flex justify-center gap-4">
+        <div className="modal-backdrop">
+            <div className="modal-content">
+                <p>{message}</p>
+                <div className="modal-actions">
                     <button onClick={onCancel} className="btn-secondary">Cancelar</button>
                     <button onClick={onConfirm} className="btn-danger">Confirmar</button>
                 </div>
@@ -16,108 +17,141 @@ export const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
     );
 };
 
-// --- TU COMPONENTE GENERADORDESCRIPCIONMODAL ---
-export const GeneradorDescripcionModal = ({ profile, onClose, openaiApiKey, aiModel, showNotification }) => {
-    const [descripcion, setDescripcion] = useState('');
-    const [isGenerating, setIsGenerating] = useState(true);
-    const [copyButtonText, setCopyButtonText] = useState('Copiar');
+// MODIFICACIÓN: Añadida la palabra 'export' para que el componente pueda ser importado
+export const ApiKeySettingsModal = ({ onClose, apiKey, setApiKey, model, setModel }) => {
+    const [localApiKey, setLocalApiKey] = useState(apiKey);
+    const [localModel, setLocalModel] = useState(model);
 
-    const buildPrompt = (profile) => {
-        const formatList = (items, field) => items && items.length > 0 ? items.map(item => `- ${item[field]}`).join('\n') : 'No especificadas';
-        const responsabilidades = formatList(profile.funciones, 'funcion');
-        const requisitos = profile.competencias_tecnicas ? profile.competencias_tecnicas.split('\n').filter(r => r.trim() !== '').map(r => `- ${r}`).join('\n') : 'No especificados';
-
-        return `
-            Por favor, genera una descripción de puesto de trabajo profesional y atractiva en español para publicar en un portal de empleo. Utiliza un tono profesional y amigable.
-            Aquí está la información detallada del puesto:
-            - **Nombre de la empresa:** EGEA
-            - **Nombre del puesto:** ${profile.nombre_puesto}
-            - **Departamento / Área:** ${profile.departamento || 'No especificado'}
-            - **Ubicación:** ${profile.ubicacion || 'No especificada'}
-            - **Reporta a:** ${profile.reporta_a || 'No especificado'}
-            - **Formación mínima requerida:** ${profile.formacion || 'No especificada'}
-            - **Experiencia mínima requerida:** ${profile.experiencia || 'No especificada'}
-            - **Horario:** ${profile.horario || 'No especificado'}
-            - **Tipo de contrato:** ${profile.tipo_contrato || 'No especificado'}
-            - **Modalidad de trabajo:** ${profile.modalidad_trabajo || 'No especificada'}
-            **Responsabilidades Clave:**
-            ${responsabilidades}
-            **Requisitos Clave:**
-            ${requisitos}
-            **Instrucciones para la estructura:**
-            1.  **Título del Puesto:** Usa el nombre del puesto proporcionado.
-            2.  **Introducción:** Escribe un párrafo breve y atractivo sobre la oportunidad de unirse a EGEA.
-            3.  **Responsabilidades Principales:** Crea una lista clara basada en las responsabilidades.
-            4.  **Requisitos y Cualificaciones:** Detalla lo necesario para el puesto.
-            5.  **Qué Ofrecemos:** Añade una sección sobre los beneficios.
-            6.  **Llamada a la acción:** Termina con una invitación para aplicar.
-            El resultado final debe ser un texto coherente y bien formateado. Usa negritas (con asteriscos) para los subtítulos.
-        `;
-    };
-
-    const generateDescription = useCallback(async () => {
-        const prompt = buildPrompt(profile);
-        setIsGenerating(true);
-        setDescripcion('');
-        try {
-            if (!openaiApiKey) throw new Error('La clave de API de OpenAI no está configurada.');
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiApiKey}` },
-                body: JSON.stringify({ model: aiModel, messages: [{ role: 'system', content: 'Eres un asistente de RRHH experto en redactar ofertas de empleo.' }, { role: 'user', content: prompt }] })
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            let text = data.choices[0].message.content;
-            text = text.replace(/\*\*(.*?)\*\*/g, '<h3 class="text-md font-bold mt-3 mb-1">$1</h3>');
-            text = text.replace(/\n/g, '<br />');
-            setDescripcion(text);
-        } catch (error) {
-            setDescripcion(`Hubo un error al generar la descripción: ${error.message}`);
-            showNotification(error.message, 'error');
-        } finally {
-            setIsGenerating(false);
-        }
-    }, [profile, openaiApiKey, aiModel, showNotification]);
-
-    useEffect(() => {
-        generateDescription();
-    }, [generateDescription]);
-    
-    const handleCopy = () => {
-        const contentEl = document.getElementById('generated-description-content');
-        if (contentEl) {
-            navigator.clipboard.writeText(contentEl.innerText).then(() => {
-                setCopyButtonText('¡Copiado!');
-                setTimeout(() => setCopyButtonText('Copiar'), 2000);
-            }, (err) => {
-                showNotification('Error al copiar texto.', 'error');
-            });
-        }
+    const handleSave = () => {
+        localStorage.setItem('openaiApiKey', localApiKey);
+        localStorage.setItem('aiModel', localModel);
+        setApiKey(localApiKey);
+        setModel(localModel);
+        onClose();
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content modal-content-lg">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">Descripción de Puesto Generada con {aiModel}</h2>
-                    <button onClick={onClose} className="text-2xl font-bold">&times;</button>
+        <div className="modal-backdrop">
+            <div className="modal-content">
+                <h2>Configuración de API</h2>
+                <label htmlFor="apiKey">OpenAI API Key</label>
+                <input
+                    type="password"
+                    id="apiKey"
+                    className="form-input"
+                    value={localApiKey}
+                    onChange={(e) => setLocalApiKey(e.target.value)}
+                    placeholder="Introduce tu API Key de OpenAI"
+                />
+                <label htmlFor="aiModel">Modelo de IA</label>
+                <select 
+                    id="aiModel"
+                    className="form-select"
+                    value={localModel}
+                    onChange={(e) => setLocalModel(e.target.value)}
+                >
+                    <option value="gpt-3.5-turbo">GPT-3.5-Turbo</option>
+                    <option value="gpt-4">GPT-4</option>
+                    <option value="gpt-4-turbo">GPT-4-Turbo</option>
+                </select>
+                <div className="modal-actions">
+                    <button onClick={onClose} className="btn-secondary">Cancelar</button>
+                    <button onClick={handleSave} className="btn-action">Guardar</button>
                 </div>
-                <div className="p-4 border rounded-md bg-gray-50 max-h-[60vh] overflow-y-auto">
-                    {isGenerating ? (
-                        <div className="flex flex-col items-center justify-center h-40">
-                            <LoaderIcon />
-                            <p className="mt-2 text-gray-600">Generando descripción con IA...</p>
-                        </div>
-                    ) : (
-                        <div id="generated-description-content" dangerouslySetInnerHTML={{ __html: descripcion }}></div>
-                    )}
-                </div>
-                <div className="flex justify-end gap-4 mt-4">
-                    <button onClick={handleCopy} className="btn-action" disabled={isGenerating}>
-                        <CopyIcon /> {copyButtonText}
-                    </button>
+            </div>
+        </div>
+    );
+};
+
+export const GeneradorDescripcionModal = ({ profile, onClose, openaiApiKey, aiModel, showNotification }) => {
+    const [generatedText, setGeneratedText] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const textareaRef = useAutosizeTextArea(generatedText);
+
+    const generateDescription = async () => {
+        if (!openaiApiKey) {
+            showNotification('Por favor, configura tu API Key de OpenAI en los ajustes.', 'warning');
+            return;
+        }
+        setIsLoading(true);
+        setGeneratedText('');
+
+        const systemPrompt = `Eres un experto en Recursos Humanos especializado en la creación de descripciones de puestos de trabajo. Tu tarea es generar una descripción de puesto profesional, clara y atractiva. Utiliza un tono formal y un lenguaje inclusivo.`;
+        const userPrompt = `Basándote en la siguiente información de una ficha de puesto, genera una descripción completa y profesional para el propósito general del puesto:
+        - Puesto: ${profile.nombre_puesto || 'No especificado'}
+        - Departamento: ${profile.departamento || 'No especificado'}
+        - Reporta a: ${profile.reporta_a || 'No especificado'}
+        - Funciones principales: ${profile.funciones ? profile.funciones.map(f => f.funcion).join(', ') : 'No especificadas'}
+        - Competencias técnicas clave: ${profile.competencias_tecnicas || 'No especificadas'}
+        - Competencias transversales: ${profile.competencias_transversales || 'No especificadas'}
+        - Formación requerida: ${profile.formacion || 'No especificada'}
+        - Experiencia requerida: ${profile.experiencia || 'No especificada'}
+        
+        Genera un párrafo conciso y bien redactado que resuma el propósito del puesto.`;
+
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${openaiApiKey}`
+                },
+                body: JSON.stringify({
+                    model: aiModel,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userPrompt }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 250,
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error.message || `Error del servidor de OpenAI: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            setGeneratedText(data.choices[0].message.content.trim());
+            showNotification('Descripción generada con éxito.', 'success');
+        } catch (error) {
+            showNotification(`Error al generar la descripción: ${error.message}`, 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const handleCopyToClipboard = () => {
+        navigator.clipboard.writeText(generatedText).then(() => {
+            showNotification('Texto copiado al portapapeles.', 'info');
+        });
+    };
+
+    return (
+        <div className="modal-backdrop">
+            <div className="modal-content" style={{maxWidth: '600px'}}>
+                <h2>Generador de Descripciones con IA</h2>
+                <p className="text-sm mb-4">Pulsa el botón para generar una propuesta de "propósito del puesto" basada en la información de la ficha.</p>
+                
+                <textarea
+                    ref={textareaRef}
+                    className="form-textarea w-full"
+                    rows="8"
+                    value={generatedText}
+                    readOnly
+                    placeholder="La descripción generada por la IA aparecerá aquí..."
+                />
+                
+                {generatedText && (
+                    <button onClick={handleCopyToClipboard} className="btn-secondary text-sm mt-2">Copiar al portapapeles</button>
+                )}
+
+                <div className="modal-actions mt-4">
                     <button onClick={onClose} className="btn-secondary">Cerrar</button>
+                    <button onClick={generateDescription} className="btn-action" disabled={isLoading}>
+                        {isLoading ? 'Generando...' : 'Generar Descripción'}
+                    </button>
                 </div>
             </div>
         </div>
