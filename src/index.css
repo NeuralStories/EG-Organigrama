@@ -1,9 +1,7 @@
-/* Directivas de Tailwind CSS (Paso 3) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Tus Estilos Personalizados */
 :root {
     --primary-color: #0079bf;
     --primary-hover: #026aa7;
