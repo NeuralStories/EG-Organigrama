@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabaseClient } from './services/supabaseClient';
-import { studyData } from './data/studyData';
-
 import { Auth } from './components/Auth';
 import { DashboardSection } from './components/DashboardSection';
 import { EmpleadosSection } from './components/EmpleadosSection';
@@ -9,85 +7,158 @@ import { Organigrama } from './components/Organigrama';
 import { SummariesSection } from './components/SummariesSection';
 import { TaskItem } from './components/TaskItem';
 import { ProfileDropdown } from './components/ProfileDropdown';
-import { Icons } from './components/Icons';
+// import { Icons } from './components/Icons'; // <-- LÍNEA INCORRECTA QUE CAUSA EL ERROR
 import { ConfirmationModal, SettingsModal, GeneradorDescripcionModal } from './components/Modals';
 import { JobProfileDetail } from './components/JobProfileDetail';
-import { JobProfileForm } from './components/JobProfileForm';
-
-const PARADO_TAG = '[state:parado]';
-
-const EstudioApp = ({ user }) => {
-    const [activeSection, setActiveSection] = useState('dashboard');
-    const [tasks, setTasks] = useState([]);
-    const [jobProfiles, setJobProfiles] = useState([]);
-    const [activityLog, setActivityLog] = useState([]);
-    const [phaseSummaries, setPhaseSummaries] = useState([]);
-    const [notification, setNotification] = useState({ show: false, message: '', type: '' });
-    const [openaiApiKey, setOpenaiApiKey] = useState('');
-    const [aiModel, setAiModel] = useState('gpt-3.5-turbo');
-    const [isRecording, setIsRecording] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [activeTaskId, setActiveTaskId] = useState(null);
-    const [loginTime] = useState(Date.now());
-    const [showSettings, setShowSettings] = useState(false);
-    const [userRole, setUserRole] = useState('employee');
-    const [loadingRole, setLoadingRole] = useState(true);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [profileToEdit, setProfileToEdit] = useState(null);
-
-    const allTaskIds = useMemo(() => 
-        studyData.flatMap(phase => phase.sections?.flatMap(section => section.tasks || []) || []).filter(Boolean),
-        []
-    );
-
-    const PREDEFINED_OPTIONS = {
-        puestos: [ "Director Producción", "Jefe Almacén", "Jefe Taller", "Tapicero", "Encargado de tapiceria", "Carpintero", "Encargada de confección", "Especialista en Confección", "Especialista confección y acabado", "Oficial de 1ª", "Oficial de 2ª", "Director Financiero", "Jefe administración", "RRHH", "Proveedores", "Facturación", "Recobro", "Contable", "Director operaciones", "Jefe ventas", "Comerciales", "Comercial Madera", "Gestores Nacional", "Gestores Internacional", "Recepción", "Responsable de obra", "Jefe de obra", "Peon", "Propiedad" ],
-        departamentos: [ "Directiva", "Producción", "Administracion", "Comercial" ],
-        reporta_a: [ "Director Producción", "Jefe Almacén", "Jefe Taller", "Tapicero", "Encargado de tapiceria", "Carpintero", "Encargada de confección", "Especialista en Confección", "Especialista confección y acabado", "Oficial de 1ª", "Oficial de 2ª", "Director Financiero", "Jefe administración", "RRHH", "No necesita" ],
-        tipos_contrato: [ "Temporal", "Fijo Discontinuo", "FiJo", "Subcontrata" ],
-        modalidades_trabajo: [ "Presencial", "A distancia", "Hibrido" ]
-    };
-
-    const showNotification = (message, type = 'success') => {
-        setNotification({ show: true, message, type });
-        setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000);
-    };
-    
-    // ... (El resto de tus funciones como fetchUserRole, logActivity, updateTask, etc. irían aquí)
-    
-    return (
-      <>
-        {notification.show && <div className={`notification ${notification.type}`}>{notification.message}</div>}
-        {/* Aquí iría el resto del JSX que renderiza la aplicación principal */}
-        <div className="container">
-            <p>Contenido principal de la aplicación...</p>
-            {/* Ejemplo de cómo usar un componente */}
-            {activeSection === 'dashboard' && <DashboardSection />}
-        </div>
-      </>
-    );
-};
+import logo from './assets/img/logo-egea.png';
 
 const App = () => {
     const [session, setSession] = useState(null);
+    const [userRole, setUserRole] = useState('employee');
+    const [activeSection, setActiveSection] = useState('dashboard');
+    const [jobProfiles, setJobProfiles] = useState([]);
+    const [profileToEdit, setProfileToEdit] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showSettings, setShowSettings] = useState(false);
+    const [openaiApiKey, setOpenaiApiKey] = useState(() => localStorage.getItem('openaiApiKey') || '');
+    const [aiModel, setAiModel] = useState(() => localStorage.getItem('aiModel') || 'gpt-3.5-turbo');
 
     useEffect(() => {
         supabaseClient.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            setLoading(false);
+            if (session) {
+                fetchUserProfile(session.user);
+                fetchJobProfiles();
+            } else {
+                setLoading(false);
+            }
         });
+
         const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
             setSession(session);
+            if (session) {
+                fetchUserProfile(session.user);
+                if (jobProfiles.length === 0) fetchJobProfiles(); 
+            } else {
+                setJobProfiles([]);
+                setUserRole('employee');
+            }
         });
+
         return () => subscription.unsubscribe();
     }, []);
 
-    if (loading) {
-        return <div className="flex justify-center items-center h-screen"><Icons.LoaderIcon /></div>;
-    }
+    const fetchUserProfile = async (user) => {
+        const { data, error } = await supabaseClient
+            .from('user_profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+        
+        if (data) setUserRole(data.role);
+        setLoading(false);
+    };
+
+    const fetchJobProfiles = async () => {
+        setLoading(true);
+        const { data, error } = await supabaseClient.from('job_profiles').select('*').order('id', { ascending: true });
+        if (error) {
+            console.error('Error fetching job profiles:', error);
+            showNotification('Error al cargar las fichas de puesto.', 'error');
+        } else {
+            setJobProfiles(data);
+        }
+        setLoading(false);
+    };
+
+    const handleLogout = async () => {
+        await supabaseClient.auth.signOut();
+        setActiveSection('dashboard');
+    };
     
-    return session ? <EstudioApp user={session.user} /> : <Auth />;
+    const showNotification = (message, type = 'info') => {
+        // Implementa tu lógica de notificaciones aquí
+        alert(`${type.toUpperCase()}: ${message}`);
+    };
+
+    const logActivity = async (action) => {
+        if (session) {
+            await supabaseClient.from('activity_log').insert({ user_id: session.user.id, action });
+        }
+    };
+    
+    // Asumimos que tienes algunos datos predefinidos para los formularios
+    const predefinedOptions = {
+        puestos: ['Desarrollador', 'Diseñador', 'Jefe de Proyecto', 'Comercial'],
+        departamentos: ['Tecnología', 'Diseño', 'Ventas', 'Administración'],
+        reporta_a: ['Director de Tecnología', 'Director de Diseño'],
+        tipos_contrato: ['Indefinido', 'Temporal', 'Prácticas'],
+        modalidades_trabajo: ['Remoto', 'Híbrido', 'Presencial']
+    };
+
+    if (loading && !session) {
+        // Muestra un loader inicial mientras se verifica la sesión
+        return <div className="loading-fullscreen">Cargando...</div>;
+    }
+
+    if (!session) {
+        return <Auth />;
+    }
+
+    return (
+        <div className="app-container">
+            <header className="app-header">
+                <div className="logo-container">
+                    <img src={logo} alt="Logo" className="logo" />
+                    <h1>Portal del Empleado</h1>
+                </div>
+                <ProfileDropdown user={session.user} onLogout={handleLogout} onSettings={() => setShowSettings(true)} />
+            </header>
+
+            <div className="main-content">
+                <nav className="sidebar">
+                    <ul>
+                        <li className={activeSection === 'dashboard' ? 'active' : ''} onClick={() => setActiveSection('dashboard')}>Dashboard</li>
+                        {userRole !== 'employee' && <li className={activeSection === 'empleados' ? 'active' : ''} onClick={() => setActiveSection('empleados')}>Gestión Fichas</li>}
+                        <li className={activeSection === 'organigrama' ? 'active' : ''} onClick={() => setActiveSection('organigrama')}>Organigrama</li>
+                        <li className={activeSection === 'summaries' ? 'active' : ''} onClick={() => setActiveSection('summaries')}>Resúmenes IA</li>
+                    </ul>
+                </nav>
+
+                <main className="content-area">
+                    {activeSection === 'dashboard' && <DashboardSection user={session.user} />}
+                    {activeSection === 'empleados' && userRole !== 'employee' && (
+                        <EmpleadosSection
+                            user={session.user}
+                            showNotification={showNotification}
+                            logActivity={logActivity}
+                            userRole={userRole}
+                            predefinedOptions={predefinedOptions}
+                            profileToEdit={profileToEdit}
+                            setProfileToEdit={setProfileToEdit}
+                            jobProfiles={jobProfiles}
+                            setJobProfiles={setJobProfiles}
+                            refetchJobProfiles={fetchJobProfiles} // Pasamos la función para recargar
+                            openaiApiKey={openaiApiKey}
+                            aiModel={aiModel}
+                        />
+                    )}
+                    {activeSection === 'organigrama' && <Organigrama jobProfiles={jobProfiles} onProfileClick={(profile) => { setProfileToEdit(profile); setActiveSection('empleados'); }} />}
+                    {activeSection === 'summaries' && <SummariesSection jobProfiles={jobProfiles} openaiApiKey={openaiApiKey} aiModel={aiModel} />}
+                </main>
+            </div>
+            
+            {showSettings && (
+                <SettingsModal 
+                    onClose={() => setShowSettings(false)}
+                    apiKey={openaiApiKey}
+                    setApiKey={setOpenaiApiKey}
+                    model={aiModel}
+                    setModel={setAiModel}
+                />
+            )}
+        </div>
+    );
 };
 
 export default App;
