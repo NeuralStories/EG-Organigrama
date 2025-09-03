@@ -7,8 +7,8 @@ import { Organigrama } from './components/Organigrama';
 import { SummariesSection } from './components/SummariesSection';
 import { TaskItem } from './components/TaskItem';
 import { ProfileDropdown } from './components/ProfileDropdown';
-// import { Icons } from './components/Icons'; // <-- LÍNEA INCORRECTA QUE CAUSA EL ERROR
-import { ConfirmationModal, SettingsModal, GeneradorDescripcionModal } from './components/Modals';
+// MODIFICACIÓN: Cambiado 'SettingsModal' por el nombre correcto 'ApiKeySettingsModal'
+import { ConfirmationModal, ApiKeySettingsModal, GeneradorDescripcionModal } from './components/Modals';
 import { JobProfileDetail } from './components/JobProfileDetail';
 import logo from './assets/img/logo-egea.png';
 
@@ -77,7 +77,6 @@ const App = () => {
     };
     
     const showNotification = (message, type = 'info') => {
-        // Implementa tu lógica de notificaciones aquí
         alert(`${type.toUpperCase()}: ${message}`);
     };
 
@@ -87,7 +86,6 @@ const App = () => {
         }
     };
     
-    // Asumimos que tienes algunos datos predefinidos para los formularios
     const predefinedOptions = {
         puestos: ['Desarrollador', 'Diseñador', 'Jefe de Proyecto', 'Comercial'],
         departamentos: ['Tecnología', 'Diseño', 'Ventas', 'Administración'],
@@ -97,7 +95,6 @@ const App = () => {
     };
 
     if (loading && !session) {
-        // Muestra un loader inicial mientras se verifica la sesión
         return <div className="loading-fullscreen">Cargando...</div>;
     }
 
@@ -138,7 +135,7 @@ const App = () => {
                             setProfileToEdit={setProfileToEdit}
                             jobProfiles={jobProfiles}
                             setJobProfiles={setJobProfiles}
-                            refetchJobProfiles={fetchJobProfiles} // Pasamos la función para recargar
+                            refetchJobProfiles={fetchJobProfiles}
                             openaiApiKey={openaiApiKey}
                             aiModel={aiModel}
                         />
@@ -149,7 +146,8 @@ const App = () => {
             </div>
             
             {showSettings && (
-                <SettingsModal 
+                // MODIFICACIÓN: Usando el nombre correcto del componente
+                <ApiKeySettingsModal 
                     onClose={() => setShowSettings(false)}
                     apiKey={openaiApiKey}
                     setApiKey={setOpenaiApiKey}
