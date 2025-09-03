@@ -1,0 +1,53 @@
+// --- DATOS ESTÁTICOS DEL ESTUDIO (Extraídos de tu código) ---
+
+export const studyData = [
+    { id: 'dashboard', title: 'Visión General' },
+    { id: 'timeline', title: 'Cronograma', sections: [
+        { title: 'CRONOGRAMA GENERAL DEL ESTUDIO', description: 'Duración total: 8 semanas' },
+        { subtitle: 'Recursos Necesarios', tasks: ['1 Coordinador del estudio (dedicación 50%)', 'Participación de todos los empleados (entrevistas)', 'Apoyo de la dirección', 'Computadora con software de diagramación', 'Material de oficina para documentación', 'Acceso a información de la empresa', 'Costo de oportunidad del tiempo del personal', 'Posible consultoría externa (opcional)', 'Software especializado (opcional)'] },
+        { subtitle: 'Indicadores de Éxito del Estudio', tasks: ['Participación: 100% de empleados entrevistados', 'Documentación: Todos los procesos principales mapeados', 'Oportunidades: Al menos 10 mejoras identificadas', 'Consenso: Aceptación de dirección y empleados', 'Implementación: Plan de acción definido y aprobado'] }
+    ]},
+    { id: 'phase1', title: 'Fase 1', sections: [
+        { title: 'FASE 1: PREPARACIÓN Y PLANIFICACIÓN', description: 'Tiempo estimado: 1-2 días' },
+        { subtitle: '1.1 Definición de Objetivos', tasks: ['Definir objetivo principal del estudio', 'Establecer 3-5 objetivos específicos y medibles', 'Documentar expectativas de la dirección', 'Identificar stakeholders clave'] },
+        { subtitle: '1.2 Conformación del Equipo de Estudio', tasks: ['Designar coordinador principal del estudio', 'Identificar personas clave para entrevistas', 'Definir cronograma detallado (4-6 semanas)', 'Comunicar el proyecto a toda la organización', 'Establecer metodología de trabajo'] }
+    ]},
+    { id: 'phase2', title: 'Fase 2', sections: [
+        { title: 'FASE 2: DIAGNÓSTICO DE ESTRUCTURA ORGANIZATIVA', description: 'Tiempo estimado: 3-4 días' },
+        { subtitle: 'A) Identificación de Niveles Jerárquicos', tasks: ['Nivel Directivo: Gerencia general, socios, dirección', 'Nivel Intermedio: Jefes de área, supervisores', 'Nivel Operativo: Empleados de primera línea'] },
+        { subtitle: 'B) Departamentos y Áreas Funcionales', tasks: ['Área Comercial: Ventas, atención al cliente, desarrollo de negocio', 'Área de Diseño: Diseñadores, asesores de decoración', 'Área de Producción/Taller: Confección textil, carpintería, tapicería', 'Área de Compras: Proveedores, materiales, textiles', 'Área de Instalación: Equipos de montaje, logística de entrega', 'Área Administrativa: Contabilidad, RRHH, facturación', 'Área de Almacén: Gestión de stock, recepción, despacho'] },
+        { subtitle: '2.2 Análisis de Puestos de Trabajo', tasks: ['Denominación del puesto', 'Objetivo principal', 'Dependencia jerárquica (a quién reporta)', 'Personal a cargo (si aplica)', 'Responsabilidades principales (5-8 máximo)', 'Competencias requeridas', 'Interacciones internas (con qué áreas trabaja)', 'Interacciones externas (clientes, proveedores)'] }
+    ]},
+    { id: 'phase3', title: 'Fase 3', sections: [
+        { title: 'FASE 3: ANÁLISIS DE PROCESOS INTERNOS', description: 'Tiempo estimado: 4-5 días' },
+        { subtitle: 'A) Procesos Estratégicos', tasks: ['Planificación estratégica', 'Desarrollo de nuevos productos/servicios', 'Gestión de la calidad'] },
+        { subtitle: 'B) Procesos Operativos (Core Business)', tasks: ['Proceso Comercial: Prospección → Presupuesto → Venta', 'Proceso de Diseño: Briefing → Propuesta → Aprobación', 'Proceso de Compras: Solicitud → Cotización → Compra', 'Proceso de Producción: Orden → Fabricación → Control de calidad', 'Proceso de Instalación: Programación → Instalación → Entrega', 'Proceso de Facturación: Venta → Factura → Cobro'] },
+        { subtitle: 'C) Procesos de Apoyo', tasks: ['Gestión de recursos humanos', 'Gestión financiera y contable', 'Mantenimiento y limpieza', 'Sistemas de información'] },
+        { subtitle: '3.2 Mapeo Detallado de Procesos', tasks: ['Objetivo del proceso', 'Responsable del proceso', 'Actividades paso a paso', 'Recursos necesarios', 'Tiempos de ejecución', 'Documentos/formularios utilizados', 'Indicadores de desempeño', 'Puntos críticos o cuellos de botella'] }
+    ]},
+    { id: 'phase4', title: 'Fase 4', sections: [
+        { title: 'FASE 4: HERRAMIENTAS DE ANÁLISIS Y DOCUMENTACIÓN', description: 'Tiempo estimado: 2-3 días' },
+        { subtitle: 'A) Para Estructura Organizativa:', tasks: ['Organigrama funcional: Estructura jerárquica actual', 'Matriz de responsabilidades: RACI', 'Análisis de cargas de trabajo: Distribución por persona'] },
+        { subtitle: 'B) Para Procesos:', tasks: ['Diagramas de flujo: Representación visual de procesos', 'Mapas de procesos: Interrelación entre procesos', 'Matriz de procesos vs. estructura: Quién hace qué'] }
+    ]},
+    { id: 'phase5', title: 'Fase 5', sections: [
+        { title: 'FASE 5: ANÁLISIS DE RESULTADOS', description: 'Tiempo estimado: 3-4 días' },
+        { subtitle: '5.1 Evaluación de la Estructura Actual', tasks: ['Eficiencia de la estructura: ¿Los niveles jerárquicos son apropiados?', 'Claridad de roles: ¿Todos conocen sus responsabilidades?', 'Comunicación: ¿Los canales son efectivos?', 'Sobrecarga/Subcarga: ¿Hay desequilibrio en cargas de trabajo?', 'Duplicidades: ¿Hay funciones repetidas innecesariamente?'] },
+        { subtitle: '5.2 Evaluación de Procesos', tasks: ['Eficiencia: ¿Los procesos son ágiles y efectivos?', 'Efectividad: ¿Se logran los objetivos esperados?', 'Calidad: ¿Los resultados cumplen los estándares?', 'Costos: ¿Los procesos son rentables?', 'Riesgos: ¿Existen puntos críticos de falla?'] },
+        { subtitle: 'Técnicas de Análisis Recomendadas', tasks: ['Análisis FODA (Fortalezas, Oportunidades, Debilidades, Amenazas)', 'Diagrama de Pareto para identificar problemas principales', 'Análisis de valor agregado en procesos', 'Benchmarking con empresas del sector'] }
+    ]},
+    { id: 'phase6', title: 'Fase 6', sections: [
+        { title: 'FASE 6: IDENTIFICACIÓN DE OPORTUNIDADES DE MEJORA', description: 'Tiempo estimado: 3-4 días' },
+        { subtitle: '6.1 Problemas Identificados (Estructura Organizativa)', tasks: ['Problemas de comunicación', 'Falta de claridad en responsabilidades', 'Niveles jerárquicos inadecuados', 'Desequilibrio en cargas de trabajo'] },
+        { subtitle: '6.1 Problemas Identificados (Procesos)', tasks: ['Cuellos de botella', 'Actividades redundantes', 'Falta de estandarización', 'Ausencia de controles'] },
+        { subtitle: '6.2 Oportunidades de Mejora (Priorización)', tasks: ['Impacto en el negocio (Alto/Medio/Bajo)', 'Facilidad de implementación (Fácil/Media/Difícil)', 'Recursos requeridos (Altos/Medios/Bajos)', 'Tiempo de implementación (Corto/Medio/Largo plazo)'] }
+    ]},
+    { id: 'phase7', title: 'Fase 7', sections: [
+        { title: 'FASE 7: PLAN DE IMPLEMENTACIÓN', description: 'Tiempo estimado: 4-5 días' },
+        { subtitle: '7.1 Propuestas de Mejora', tasks: ['Descripción de la mejora', 'Objetivos específicos', 'Responsable de implementación', 'Cronograma', 'Recursos necesarios', 'Indicadores de éxito', 'Riesgos y contingencias'] },
+        { subtitle: '7.2 Cronograma de Implementación', tasks: ['Fase 1: Mejoras de corto plazo (1-3 meses)', 'Fase 2: Mejoras de mediano plazo (3-6 meses)', 'Fase 3: Mejoras de largo plazo (6-12 meses)'] }
+    ]},
+    { id: 'summaries', title: 'Resumenes' }
+];
+
+export const allTaskIds = studyData.flatMap(phase => phase.sections?.flatMap(section => section.tasks || []) || []).filter(Boolean);
