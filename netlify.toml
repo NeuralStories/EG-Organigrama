@@ -1,15 +1,7 @@
-# Este es el comando que Netlify ejecutará para construir tu sitio.
-# 'npm install' instala las dependencias y 'npm run build' ejecuta Vite
-# para generar la versión final de tu aplicación.
 [build]
   command = "npm install && npm run build"
-  
-  # Esta es la carpeta que Netlify publicará.
-  # Vite, por defecto, pone todos los archivos finales en una carpeta llamada 'dist'.
   publish = "dist"
 
-# Redirección para asegurar que las rutas de React funcionen correctamente.
-# Esto es crucial para que la aplicación no dé un error 404 si recargas la página.
 [[redirects]]
   from = "/*"
   to = "/index.html"
