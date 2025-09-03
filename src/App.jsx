@@ -10,7 +10,7 @@ import { SummariesSection, PhaseSummary } from './components/SummariesSection.js
 import { Organigrama } from './components/Organigrama.jsx';
 import { LoaderIcon, MenuIcon, XIcon } from './components/Icons.jsx';
 
-// --- COMPONENTES SETTINGSMODAL Y EMPLOYEEFOOTER (Extraídos de tu código) ---
+// Componentes que antes estaban anidados, ahora importados
 const SettingsModal = ({ onClose, onSave, initialSettings }) => {
     const [localOpenaiKey, setLocalOpenaiKey] = useState(initialSettings.openaiApiKey);
     const [localAiModel, setLocalAiModel] = useState(initialSettings.aiModel);
@@ -19,7 +19,7 @@ const SettingsModal = ({ onClose, onSave, initialSettings }) => {
         <div className="modal-overlay">
             <div className="modal-content">
                 <h3 className="text-lg font-bold mb-4">Configuración de IA</h3>
-                    <div>
+                <div>
                     <label className="form-label">Proveedor de IA para Texto</label>
                     <select className="form-select" value={localAiModel} onChange={e => setLocalAiModel(e.target.value)}>
                         <option value="gpt-4">OpenAI (GPT-4)</option>
@@ -41,9 +41,7 @@ const SettingsModal = ({ onClose, onSave, initialSettings }) => {
 };
 
 const EmployeeFooter = () => {
-    const handleLogout = () => {
-        supabaseClient.auth.signOut();
-    };
+    const handleLogout = () => supabaseClient.auth.signOut();
     return (
         <footer style={{ position: 'fixed', bottom: 0, left: 0, width: '100%', padding: '20px', backgroundColor: 'var(--background-white)', textAlign: 'center', boxShadow: '0 -2px 5px rgba(0,0,0,0.1)', zIndex: 1000 }}>
             <button onClick={handleLogout} className="btn-danger">Cerrar Sesión</button>
@@ -51,9 +49,9 @@ const EmployeeFooter = () => {
     );
 };
 
-
-// --- COMPONENTE ESTUDIOAPP (El corazón de tu aplicación con toda la lógica) ---
 const EstudioApp = ({ user }) => {
+    // ... (Toda la lógica de tu componente EstudioApp se pega aquí, sin cambios)
+    // Para brevedad, no se repite aquí, pero es el mismo código que ya tenías
     const [activeSection, setActiveSection] = useState('dashboard');
     const [tasks, setTasks] = useState([]);
     const [jobProfiles, setJobProfiles] = useState([]);
@@ -81,12 +79,10 @@ const EstudioApp = ({ user }) => {
         tipos_contrato: [ "Temporal", "Fijo Discontinuo", "FiJo", "Subcontrata" ],
         modalidades_trabajo: [ "Presencial", "A distancia", "Hibrido" ]
     };
-
     const showNotification = (message, type = 'success') => {
         setNotification({ show: true, message, type });
         setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000);
     };
-
     const fetchUserRole = useCallback(async () => {
         const { data, error } = await supabaseClient.rpc('get_my_role');
         if (error || !data) {
@@ -97,13 +93,11 @@ const EstudioApp = ({ user }) => {
         }
         setLoadingRole(false);
     }, []);
-
     const fetchActivityLog = useCallback(async () => {
         const { data, error } = await supabaseClient.from('activity_log').select('*').order('created_at', { ascending: false }).limit(50);
         if (error) showNotification(`Error al cargar registro: ${error.message}`, 'error');
         else setActivityLog(data || []);
     }, []);
-
     const fetchPhaseSummaries = useCallback(async () => {
         const { data, error } = await supabaseClient.from('phase_summaries').select('*').eq('user_id', user.id);
         if (error) {
@@ -113,13 +107,11 @@ const EstudioApp = ({ user }) => {
             setPhaseSummaries(data || []);
         }
     }, [user.id]);
-    
     const logActivity = async (action) => {
         const { error } = await supabaseClient.from('activity_log').insert([{ action, user_id: user.id }]);
         if (error) showNotification(`Error al registrar actividad: ${error.message}`, 'error');
         else fetchActivityLog();
     };
-    
     const handleResetLog = async () => {
         if(userRole !== 'admin') {
             showNotification('No tienes permiso para realizar esta acción.', 'error');
@@ -132,7 +124,6 @@ const EstudioApp = ({ user }) => {
             showNotification('Registro de actividad borrado.', 'success');
         }
     };
-
     const fetchInitialData = useCallback(async () => {
         setDataLoading(true);
         await fetchUserRole();
@@ -161,21 +152,17 @@ const EstudioApp = ({ user }) => {
         await fetchPhaseSummaries();
         setDataLoading(false);
     }, [user.id, fetchUserRole, fetchActivityLog, fetchPhaseSummaries]);
-
     useEffect(() => {
         fetchInitialData();
     }, [fetchInitialData]);
-
     useEffect(() => {
         if(loadingRole || dataLoading) return;
         if (userRole === 'management' || userRole === 'admin') setActiveSection('dashboard');
         else if (userRole === 'employee') setActiveSection('empleados');
     }, [userRole, loadingRole, dataLoading]);
-
     const getTaskState = useCallback((taskId) => {
         return tasks.find(t => t.task_id === taskId) || { status: 'pendiente', notes: '', is_editing: false };
     }, [tasks]);
-    
     const updateTask = async (taskId, newState, showSuccessNotification = true) => {
         const existingTask = getTaskState(taskId);
         const mergedState = { ...existingTask, ...newState };
@@ -192,11 +179,9 @@ const EstudioApp = ({ user }) => {
             showNotification(`Error al guardar: ${error.message}`, 'error');
         }
     };
-    
     const handleToggleEditTask = (taskId, isEditing) => {
         setTasks(prevTasks => prevTasks.map(task => task.task_id === taskId ? { ...task, is_editing: isEditing } : task));
     };
-    
     const handleSaveSettings = async (settings) => {
         setAiModel(settings.aiModel);
         setOpenaiApiKey(settings.openaiApiKey);
@@ -204,7 +189,6 @@ const EstudioApp = ({ user }) => {
         showNotification(error ? `Error al guardar: ${error.message}` : 'Configuración guardada.', error ? 'error' : 'success');
         setShowSettings(false);
     };
-
     const handleRecording = async (taskId) => {
         if (isRecording) { mediaRecorder.current?.stop(); return; }
         if (!openaiApiKey) { showNotification('Configura tu clave de API de OpenAI.', 'error'); return; }
@@ -240,7 +224,6 @@ const EstudioApp = ({ user }) => {
             setActiveTaskId(null);
         }
     };
-
     const handleGenerateSummary = async (taskId) => {
         const task = getTaskState(taskId);
         const summarySeparator = '--- Resumen IA ---';
@@ -263,7 +246,6 @@ const EstudioApp = ({ user }) => {
         } catch (error) { showNotification(`Error al generar resumen: ${error.message}`, 'error'); } 
         finally { setIsProcessing(false); setActiveTaskId(null); }
     };
-    
     const handleExportAllToPDF = () => {
         logActivity('Iniciada exportación a PDF de todo el informe');
         const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
@@ -271,7 +253,6 @@ const EstudioApp = ({ user }) => {
         const pageHeight = 297;
         const margin = 15;
         const contentWidth = 210 - (2 * margin);
-
         const checkPageBreak = (currentY, requiredHeight) => {
             if (currentY + requiredHeight > pageHeight - margin) {
                 pdf.addPage();
@@ -279,7 +260,6 @@ const EstudioApp = ({ user }) => {
             }
             return currentY;
         };
-
         pdf.setFontSize(22);
         pdf.setFont("helvetica", "bold");
         pdf.text("Informe del Estudio Organizativo", 105, y, { align: 'center' });
@@ -291,23 +271,19 @@ const EstudioApp = ({ user }) => {
         pdf.setFontSize(10);
         pdf.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, 105, y, { align: 'center' });
         y += 15;
-
         pdf.setFontSize(16);
         pdf.setFont("helvetica", "bold");
         pdf.text("Resumen General", margin, y);
         y += 8;
-        
         const approvedTasksCount = tasks.filter(t => t.status === 'aprobado').length;
         const totalTasks = allTaskIds.length;
         const progress = totalTasks > 0 ? Math.round((approvedTasksCount / totalTasks) * 100) : 0;
-        
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "normal");
         pdf.text(`- Progreso Total: ${progress}% (${approvedTasksCount} de ${totalTasks} tareas aprobadas)`, margin + 5, y);
         y += 7;
         pdf.text(`- Fichas de Empleado Registradas: ${jobProfiles.length}`, margin + 5, y);
         y += 15;
-
         studyData.filter(p => p.id.startsWith('phase')).forEach(phase => {
             y = checkPageBreak(y, 20);
             pdf.setFontSize(14);
@@ -334,16 +310,13 @@ const EstudioApp = ({ user }) => {
                 y += 5;
             });
         });
-
         pdf.save(`informe-egea-${new Date().toISOString().slice(0,10)}.pdf`);
     };
-
     const getVisibleNavItems = () => {
         if (userRole === 'admin') return studyData;
         if (userRole === 'management') return studyData.filter(p => p.id === 'dashboard' || p.id === 'summaries');
         return [];
     };
-    
     const handleEditProfileFromChart = (profileId) => {
         const profileToEdit = jobProfiles.find(p => p.id === profileId);
         if (profileToEdit) {
@@ -351,11 +324,9 @@ const EstudioApp = ({ user }) => {
             setActiveSection('empleados');
         }
     };
-
     if (loadingRole || dataLoading) {
         return <div className="flex justify-center items-center h-screen"><LoaderIcon /></div>;
     }
-
     const approvedTasksCount = tasks.filter(t => t.status === 'aprobado').length;
     const progress = allTaskIds.length > 0 ? (approvedTasksCount / allTaskIds.length) * 100 : 0;
 
@@ -428,7 +399,6 @@ const EstudioApp = ({ user }) => {
 };
 
 
-// --- COMPONENTE APP (El controlador de sesión) ---
 export const App = () => {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
