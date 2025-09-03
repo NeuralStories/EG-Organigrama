@@ -1,5 +1,3 @@
-// --- DATOS ESTÁTICOS DEL ESTUDIO (Extraídos de tu código) ---
-
 export const studyData = [
     { id: 'dashboard', title: 'Visión General' },
     { id: 'timeline', title: 'Cronograma', sections: [
