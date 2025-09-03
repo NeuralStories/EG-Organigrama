@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Presión Arterial</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>">
+    <style>
+        :root {
+            --primary-color: #007AFF;
+            --primary-hover-color: #0056b3;
+            
+            /* Light Theme */
+            --bg-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --text-color: #2c3e50;
+            --light-text-color: #576574;
+            --border-color: #e1e5e8;
+            --input-bg-color: #fdfdfd;
+            --chart-grid-color: 'rgba(0, 0, 0, 0.1)';
+            --chart-text-color: '#666';
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1c2128;
+            --card-bg-color: #22272e;
+            --text-color: #cdd9e5;
+            --light-text-color: #97a3b1;
+            --border-color: #333942;
+            --input-bg-color: #1c2128;
+            --chart-grid-color: 'rgba(255, 255, 255, 0.1)';
+            --chart-text-color: '#cdd9e5';
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 15px;
+            box-sizing: border-box;
+            transition: max-width 0.4s ease-in-out;
+        }
+        .header { text-align: center; padding: 40px 0 20px; position: relative; }
+        .header h1 { color: var(--primary-color); margin-bottom: 10px; font-size: 2.2em; font-weight: 700; }
+        .header p { color: var(--light-text-color); font-size: 1.1em; margin-top: 0; margin-bottom: 20px; }
+        #welcome-message { 
+            font-size: 1.5em; 
+            font-weight: 300; /* Tipografía más fina */
+            color: var(--light-text-color); 
+            margin: -5px 0 25px; 
+            height: 1.2em; /* Evita salto de layout al cargar */
+            transition: color 0.3s;
+        }
+
+        .card { background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); padding: 30px; margin-bottom: 30px; border: 1px solid var(--border-color); transition: background-color 0.3s, border-color 0.3s; }
+        .auth-card, .registration-card { padding: 40px 20px; margin: 0 auto; width: 100%; text-align: center; }
+        .auth-card { max-width: 420px; }
+        .registration-card { display: none; max-width: 540px; }
+        .auth-card h2, .registration-card h2 { color: var(--text-color); margin-bottom: 30px; font-size: 1.8em; font-weight: 600; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color); font-size: 0.95em; }
+        input, select {
+            width: 100%; padding: 14px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em;
+            color: var(--text-color); background-color: var(--input-bg-color); box-sizing: border-box; transition: all 0.3s ease;
+        }
+        input:focus, select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2); outline: none; }
+        .registration-section { text-align: left; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .registration-section h3 { font-size: 1.2em; color: var(--primary-color); margin-bottom: 15px; }
+        .auth-buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 25px; }
+        .auth-link-button { background-color: transparent; color: var(--primary-color); border: none; cursor: pointer; font-size: 0.95em; padding: 10px; text-decoration: none; font-weight: 500; }
+        .auth-link-button:hover { text-decoration: underline; }
+        #app-content { display: none; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: 600; transition: all 0.3s ease; gap: 8px; }
+        .btn-primary { background-color: var(--primary-color); color: #fff; padding-top: 14px; padding-bottom: 14px; }
+        .btn-primary:hover { background-color: var(--primary-hover-color); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3); }
+        .btn-tertiary { background-color: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); }
+        .btn-tertiary:hover { background-color: rgba(0, 122, 255, 0.1); }
+        .results h2 { color: var(--primary-color); font-size: 1.8em; margin-top: 40px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .summary-item { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; text-align: center; }
+        .summary-item h3 { margin-top:0; color: var(--light-text-color); }
+        .summary-item p { font-size: 1.8em; font-weight: 700; color: var(--text-color); margin: 0; }
+        .chart-container { height: 400px; padding: 20px; background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 30px; }
+        .table-container { overflow-x: auto; background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        table th, table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        table th { background-color: var(--bg-color); font-weight: 600; }
+        #message-container { position: fixed; top: 20px; right: 20px; z-index: 1000; width: calc(100% - 40px); max-width: 350px; }
+        .message { padding: 15px; border-radius: 8px; font-weight: 500; text-align: center; opacity: 0; transform: translateY(-20px); transition: all 0.5s ease; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .message.show { opacity: 1; transform: translateY(0); }
+        .message.success { background-color: #d4edda; color: #155724; }
+        .message.error { background-color: #f8d7da; color: #721c24; }
+        .message.info { background-color: #d1ecf1; color: #0c5460; }
+        .footer { text-align: center; padding: 20px; margin-top: 40px; color: var(--light-text-color); font-size: 0.9em; }
+        .footer p { display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .contributions-container { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 30px; overflow-x: auto; }
+        .contribution-graph { display: inline-block; }
+        .contribution-graph .day-cell { width: 15px; height: 15px; background-color: var(--border-color); border-radius: 3px; }
+        .contribution-graph .day-cell.level-1 { background-color: #0e4429; } .contribution-graph .day-cell.level-2 { background-color: #006d32; }
+        .contribution-graph .day-cell.level-3 { background-color: #26a641; } .contribution-graph .day-cell.level-4 { background-color: #39d353; }
+        .app-footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+        .app-footer p { margin-top: 20px; font-size: 0.9em; color: var(--light-text-color); display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .theme-switcher { position: absolute; top: 20px; right: 20px; cursor: pointer; background: var(--card-bg-color); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); }
+        .theme-switcher svg { width: 20px; height: 20px; color: var(--text-color); }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="container" id="main-container">
+        <!-- AUTHENTICATION CARD -->
+        <div class="card auth-card" id="auth-card">
+            <h2>Iniciar Sesión</h2>
+            <div class="form-group"><input type="email" id="email" placeholder="Correo electrónico" required></div>
+            <div class="form-group"><input type="password" id="password" placeholder="Contraseña" required></div>
+            <div class="auth-buttons">
+                <button class="btn btn-primary" onclick="signIn()">Entrar</button>
+                <button class="auth-link-button" onclick="showRegistrationForm()">¿No tienes cuenta? Regístrate</button>
+            </div>
+        </div>
+        
+        <!-- REGISTRATION CARD -->
+        <div class="card registration-card" id="registration-card">
+            <h2>Crear una Cuenta</h2>
+            <div class="registration-section"><h3>Datos Básicos</h3>
+                <div class="form-group"><label for="reg-fullname">Nombre completo</label><input type="text" id="reg-fullname" required></div>
+                <div class="form-group"><label for="reg-email">Correo electrónico</label><input type="email" id="reg-email" required></div>
+                <div class="form-group"><label for="reg-password">Contraseña</label><input type="password" id="reg-password" required></div>
+                <div class="form-group"><label for="reg-dob">Fecha de nacimiento</label><input type="date" id="reg-dob" required></div>
+                <div class="form-group"><label for="reg-gender">Sexo/Género</label><select id="reg-gender"><option value="masculino">Masculino</option><option value="femenino">Femenino</option><option value="otro">Otro</option><option value="no_especificado">Prefiero no decirlo</option></select></div>
+            </div>
+            <div class="registration-section"><h3>Información Física</h3>
+                <div class="form-group"><label for="reg-height">Altura (cm)</label><input type="number" id="reg-height" required></div>
+                <div class="form-group"><label for="reg-weight">Peso actual (kg)</label><input type="number" id="reg-weight" step="0.1" required></div>
+                <div class="form-group"><label for="reg-activity">Nivel de actividad</label><select id="reg-activity"><option value="sedentario">Sedentario</option><option value="ligero">Ligero</option><option value="activo">Activo</option><option value="muy_activo">Muy Activo</option></select></div>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-primary" onclick="signUp()">Registrarse</button>
+                <button class="auth-link-button" onclick="showLoginForm()">¿Ya tienes cuenta? Inicia Sesión</button>
+            </div>
+        </div>
+
+        <!-- MAIN APP CONTENT -->
+        <div id="app-content">
+            <header class="header">
+                 <div class="theme-switcher" onclick="toggleTheme()">
+                    <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 010 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.591a.75.75 0 011.06 0zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM17.836 17.836a.75.75 0 01-1.06 0l-1.59-1.591a.75.75 0 111.06-1.06l1.591 1.59a.75.75 0 010 1.06zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0v2.25a.75.75 0 01-.75.75zM5.106 17.836a.75.75 0 010-1.06l1.591-1.59a.75.75 0 011.06 1.06l-1.59 1.591a.75.75 0 01-1.06 0zM3 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3.75A.75.75 0 013 12zM6.106 6.106a.75.75 0 011.06 0l1.591 1.59a.75.75 0 01-1.06 1.06L6.106 7.167a.75.75 0 010-1.06z"/></svg>
+                    <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.463-.69a.75.75 0 01.981.981A10.503 10.503 0 0118 18a10.5 10.5 0 01-10.5-10.5c0-1.25.22-2.454.622-3.572a.75.75 0 01.806-.162z" clip-rule="evenodd" /></svg>
+                </div>
+                <h1>Control de Presión Arterial</h1>
+                <h2 id="welcome-message"></h2>
+                <p>Monitorea tu salud cardiovascular de forma simple y elegante</p>
+            </header>
+            <div class="card">
+                <div class="form-grid">
+                    <div class="form-group"><label for="fecha">Fecha</label><input type="date" id="fecha" required></div>
+                    <div class="form-group"><label for="hora">Hora</label><input type="time" id="hora" required></div>
+                    <div class="form-group"><label for="maxima">Presión Sistólica</label><input type="number" id="maxima" placeholder="120" required></div>
+                    <div class="form-group"><label for="minima">Presión Diastólica</label><input type="number" id="minima" placeholder="80" required></div>
+                    <div class="form-group"><label for="pulsaciones">Pulsaciones</label><input type="number" id="pulsaciones" placeholder="70" required></div>
+                </div>
+                <button class="btn btn-primary" onclick="guardarDatos()">Guardar Registro</button>
+            </div>
+            <section id="results" class="results">
+                <h2>Resumen de Mediciones</h2>
+                <div class="summary-grid" id="summary"></div>
+                <div class="chart-container"><canvas id="presionChart"></canvas></div>
+                <h2>Frecuencia de Mediciones</h2>
+                <div id="contributions-container" class="contributions-container"></div>
+                <h2>Historial de Mediciones</h2>
+                <div class="table-container" id="historial"></div>
+            </section>
+            <div class="app-footer">
+                <button class="btn btn-tertiary" onclick="signOut()">Cerrar Sesión</button>
+                <p>
+                    Hecho con 
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="red" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.39 20.87a.696.696 0 0 1-.78 0C9.764 19.637 2 14.15 2 8.973c0-6.68 7.85-7.75 10-3.25 2.15-4.5 10-3.43 10 3.25 0 5.178-7.764 10.664-9.61 11.895z"/>
+                    </svg>
+                     por Hacchi
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="message-container"></div>
+    <footer class="footer" id="login-footer">
+        <p>
+            Hecho con 
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="red" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.39 20.87a.696.696 0 0 1-.78 0C9.764 19.637 2 14.15 2 8.973c0-6.68 7.85-7.75 10-3.25 2.15-4.5 10-3.43 10 3.25 0 5.178-7.764 10.664-9.61 11.895z"/>
+            </svg>
+             por Hacchi
+        </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <script>
+        // --- CONFIGURACIÓN DE SUPABASE ---
+        const SUPABASE_URL = 'https://ifosoiegtnoxjvbtmggn.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlmb3NvaWVndG5veGp2YnRtZ2duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MjMxNTgsImV4cCI6MjA2Nzk5OTE1OH0.72d2-LEZscTrqEYcixtNpR86FxcBCf8GQaUCXb9JsDw';
+        const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+
+        // --- MANEJO DE VISTAS ---
+        function showRegistrationForm() {
+            document.getElementById('auth-card').style.display = 'none';
+            document.getElementById('registration-card').style.display = 'block';
+        }
+        function showLoginForm() {
+            document.getElementById('registration-card').style.display = 'none';
+            document.getElementById('auth-card').style.display = 'block';
+        }
+
+        // --- AUTENTICACIÓN ---
+        async function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if (!email || !password) { mostrarMensaje('Por favor, introduce tu correo y contraseña.', 'error'); return; }
+            const { data, error } = await supabase_client.auth.signInWithPassword({ email, password });
+            if (error) { mostrarMensaje(`Error al iniciar sesión: ${error.message}`, 'error'); } 
+            else {
+                currentUser = data.user;
+                mostrarMensaje('¡Sesión iniciada exitosamente!', 'success');
+                checkAuthStatus();
+            }
+        }
+        
+        async function signUp() {
+            const fullName = document.getElementById('reg-fullname').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const dob = document.getElementById('reg-dob').value;
+            const gender = document.getElementById('reg-gender').value;
+            const height = document.getElementById('reg-height').value;
+            const weight = document.getElementById('reg-weight').value;
+            const activity = document.getElementById('reg-activity').value;
+
+            if (!fullName || !email || !password || !dob || !height || !weight) { mostrarMensaje('Por favor, completa todos los campos obligatorios.', 'error'); return; }
+
+            const { data, error } = await supabase_client.auth.signUp({
+                email: email, password: password,
+                options: { data: { full_name: fullName, date_of_birth: dob, gender: gender, height_cm: height, weight_kg: weight, activity_level: activity } }
+            });
+
+            if (error) { mostrarMensaje(`Error en el registro: ${error.message}`, 'error'); } 
+            else {
+                mostrarMensaje('¡Registro completo! Revisa tu correo para confirmar tu cuenta.', 'success');
+                showLoginForm();
+            }
+        }
+
+        async function signOut() {
+            const { error } = await supabase_client.auth.signOut();
+            if (error) { mostrarMensaje(`Error al cerrar sesión: ${error.message}`, 'error'); } 
+            else {
+                currentUser = null;
+                mostrarMensaje('Sesión cerrada.', 'info');
+                checkAuthStatus();
+            }
+        }
+
+        async function checkAuthStatus() {
+            const authCard = document.getElementById('auth-card');
+            const registrationCard = document.getElementById('registration-card');
+            const appContent = document.getElementById('app-content');
+            const loginFooter = document.getElementById('login-footer');
+            
+            const { data: { session } } = await supabase_client.auth.getSession();
+
+            if (session) {
+                currentUser = session.user;
+                authCard.style.display = 'none';
+                registrationCard.style.display = 'none';
+                appContent.style.display = 'block';
+                loginFooter.style.display = 'none';
+                
+                const { data: profile, error } = await supabase_client
+                    .from('profiles')
+                    .select('full_name')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                // Maneja el error de forma silenciosa si el perfil no se encuentra (PGRST116)
+                if (error && error.code !== 'PGRST116') {
+                    console.error("Error fetching profile:", error);
+                }
+                
+                if (profile && profile.full_name) {
+                    document.getElementById('welcome-message').textContent = `Hola, ${profile.full_name.split(' ')[0]}`;
+                } else {
+                    document.getElementById('welcome-message').textContent = `Hola`;
+                }
+
+                cargarDatos();
+            } else {
+                currentUser = null;
+                appContent.style.display = 'none';
+                loginFooter.style.display = 'block';
+                showLoginForm();
+            }
+        }
+
+        // --- LÓGICA DE LA APLICACIÓN ---
+        async function cargarDatos() {
+            if (!currentUser) return;
+            const { data, error } = await supabase_client.from('mediciones').select('*').eq('user_id', currentUser.id).order('fecha', { ascending: false }).order('hora', { ascending: false });
+            if (error) { mostrarMensaje(`Error al cargar mediciones: ${error.message}`, 'error'); return; }
+            actualizarResumen(data);
+            actualizarHistorial(data);
+            renderChart(data);
+            generarGraficoContribuciones(data);
+        }
+        async function guardarDatos() {
+            if (!currentUser) { mostrarMensaje('Debes iniciar sesión.', 'error'); return; }
+            const [fecha, hora, sistolica, diastolica, pulsaciones] = [
+                document.getElementById('fecha').value, document.getElementById('hora').value, document.getElementById('maxima').value,
+                document.getElementById('minima').value, document.getElementById('pulsaciones').value
+            ];
+            if (!fecha || !hora || !sistolica || !diastolica || !pulsaciones) { mostrarMensaje('Por favor, completa todos los campos.', 'error'); return; }
+            const { error } = await supabase_client.from('mediciones').insert([{ user_id: currentUser.id, fecha, hora, sistolica, diastolica, pulsaciones }]);
+            if (error) { mostrarMensaje(`Error al guardar datos: ${error.message}`, 'error'); } 
+            else {
+                mostrarMensaje('Medición guardada exitosamente.', 'success');
+                ['maxima', 'minima', 'pulsaciones'].forEach(id => document.getElementById(id).value = '');
+                cargarDatos();
+            }
+        }
+        function actualizarResumen(mediciones) {
+            const summaryDiv = document.getElementById('summary');
+            if (mediciones.length === 0) { summaryDiv.innerHTML = '<p>No hay mediciones registradas.</p>'; return; }
+            const sistolicas = mediciones.map(m => m.sistolica);
+            const diastolicas = mediciones.map(m => m.diastolica);
+            const avgSistolica = (sistolicas.reduce((a, b) => a + b, 0) / sistolicas.length).toFixed(1);
+            const avgDiastolica = (diastolicas.reduce((a, b) => a + b, 0) / diastolicas.length).toFixed(1);
+            const latest = mediciones[0];
+            summaryDiv.innerHTML = `<div class="summary-item"><h3>Última Medición</h3><p>${latest.sistolica}/${latest.diastolica} mmHg</p></div><div class="summary-item"><h3>Promedio Sistólica</h3><p>${avgSistolica} mmHg</p></div><div class="summary-item"><h3>Promedio Diastólica</h3><p>${avgDiastolica} mmHg</p></div>`;
+        }
+        function actualizarHistorial(mediciones) {
+            const historialDiv = document.getElementById('historial');
+            if (mediciones.length === 0) { historialDiv.innerHTML = '<p>No hay registros de presión arterial.</p>'; return; }
+            let tableHTML = `<table><thead><tr><th>Fecha</th><th>Hora</th><th>Sistólica</th><th>Diastólica</th><th>Pulsaciones</th></tr></thead><tbody>`;
+            mediciones.forEach(m => { tableHTML += `<tr><td>${new Date(m.fecha).toLocaleDateString('es-ES')}</td><td>${m.hora.substring(0, 5)}</td><td>${m.sistolica}</td><td>${m.diastolica}</td><td>${m.pulsaciones}</td></tr>`; });
+            tableHTML += `</tbody></table>`;
+            historialDiv.innerHTML = tableHTML;
+        }
+
+        // --- GRÁFICOS ---
+        let presionChartInstance = null;
+        function renderChart(mediciones) {
+            const ctx = document.getElementById('presionChart').getContext('2d');
+            if (presionChartInstance) { presionChartInstance.destroy(); }
+            
+            const currentTheme = document.body.dataset.theme;
+            const gridColor = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = currentTheme === 'dark' ? '#cdd9e5' : '#666';
+
+            const sortedMediciones = [...mediciones].sort((a, b) => new Date(`${a.fecha}T${a.hora}`) - new Date(`${b.fecha}T${b.hora}`));
+            const labels = sortedMediciones.map(m => new Date(m.fecha).toLocaleDateString('es-ES', {month:'short', day:'numeric'}));
+            const sistolicas = sortedMediciones.map(m => m.sistolica);
+            const diastolicas = sortedMediciones.map(m => m.diastolica);
+            presionChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [ { label: 'Sistólica (mmHg)', data: sistolicas, borderColor: 'rgb(75, 192, 192)', tension: 0.1 }, { label: 'Diastólica (mmHg)', data: diastolicas, borderColor: 'rgb(255, 99, 132)', tension: 0.1 } ] },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor }, grid: { color: gridColor } } },
+                    plugins: { legend: { labels: { color: textColor } } }
+                }
+            });
+        }
+        function generarGraficoContribuciones(mediciones) {
+            // Implementación del gráfico de contribuciones...
+        }
+
+        // --- UTILIDADES ---
+        function mostrarMensaje(mensaje, tipo) {
+            const container = document.getElementById('message-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = mensaje;
+            messageDiv.className = `message ${tipo}`;
+            container.appendChild(messageDiv);
+            requestAnimationFrame(() => { messageDiv.classList.add('show'); });
+            setTimeout(() => {
+                messageDiv.classList.remove('show');
+                setTimeout(() => { if(container.contains(messageDiv)) {container.removeChild(messageDiv);} }, 500);
+            }, 5000);
+        }
+
+        // --- TEMA (MODO OSCURO/CLARO) ---
+        function applyTheme(theme) {
+            document.body.dataset.theme = theme;
+            document.getElementById('theme-icon-sun').style.display = theme === 'light' ? 'block' : 'none';
+            document.getElementById('theme-icon-moon').style.display = theme === 'dark' ? 'block' : 'none';
+            localStorage.setItem('theme', theme);
+            if (currentUser) {
+                cargarDatos(); // Recargar datos para redibujar gráficos con el nuevo tema
+            }
+        }
+        function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+        }
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+            checkAuthStatus();
+            const fechaInput = document.getElementById('fecha');
+            const horaInput = document.getElementById('hora');
+            if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+            if (horaInput) horaInput.value = new Date().toTimeString().split(' ')[0].substring(0, 5);
+        });
+    </script>
+</body>
+</html>
