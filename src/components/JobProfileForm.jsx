@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabaseClient } from '../services/supabaseClient.js';
 import { LoaderIcon } from './Icons.jsx';
+import SignaturePad from 'signature_pad'; // <-- MODIFICACIÓN: Importación añadida
 
-// --- TU COMPONENTE JOBPROFILEFORM (Extraído directamente de tu código) ---
 export const JobProfileForm = ({ user, onSave, onCancel, showNotification, profileToEdit, predefinedOptions, logActivity }) => {
     const [formData, setFormData] = useState({
         nombre_apellidos: '', nombre_puesto: '', departamento: '', ubicacion: '', reporta_a: '', proposito: '',
@@ -32,7 +32,6 @@ export const JobProfileForm = ({ user, onSave, onCancel, showNotification, profi
 
     useEffect(() => {
         if (canvasRef.current) {
-            // Asumimos que SignaturePad está disponible globalmente
             signaturePadRef.current = new SignaturePad(canvasRef.current);
             resizeCanvas();
             window.addEventListener("resize", resizeCanvas);
