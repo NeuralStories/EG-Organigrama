@@ -1,15 +1,10 @@
-// #################################################################
-// ##              CLIENTE DE CONEXIÓN A SUPABASE                 ##
-// ##                                                             ##
-// ## Este archivo establece la conexión con tu proyecto Supabase ##
-// ## y exporta el cliente para que sea usado en toda la app.     ##
-// #################################################################
-
+// Importamos la función para crear el cliente desde la librería de Supabase.
 import { createClient } from '@supabase/supabase-js';
 
-// --- Credenciales de tu proyecto Supabase ---
-const supabaseUrl = 'https://fkrawpxgkuciofjvtttr.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrcmF3cHhna3VjaW9manZ0dHRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MDA1NDEsImV4cCI6MjA3MjM3NjU0MX0.T0VUiIBJ04iDq8Vk7bMzAdFHUVyCBFkgppmw2DwTGY8';
+// --- TUS CREDENCIALES (Extraídas directamente de tu código) ---
+const supabaseUrl = 'https://mtncylafoftawkuruinu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bmN5bGFmb2Z0YXdrdXJ1aW51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5Nzc5MzAsImV4cCI6MjA2NzU1MzkzMH0.K3w1EiuhSXGbbEtY0muyDEUXvlxGkmnb9fCrv3eSuOU';
 
-// Creamos una única instancia del cliente de Supabase.
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Creamos y exportamos la instancia del cliente de Supabase.
+// "export" permite que otros archivos puedan importarlo y usarlo.
+export const supabaseClient = createClient(supabaseUrl, SUPABASE_ANON_KEY);
