@@ -439,3 +439,5 @@ export const App = () => {
     
     return session ? <EstudioApp user={session.user} /> : <Auth />;
 };
+
+export default App;
