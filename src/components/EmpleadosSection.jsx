@@ -5,11 +5,11 @@ import { JobProfileDetail } from './JobProfileDetail.jsx';
 import { ConfirmationModal, GeneradorDescripcionModal } from './Modals.jsx';
 import { LoaderIcon, TrashIcon } from './Icons.jsx';
 
-// --- TU COMPONENTE EMPLEADOSSECTION (Extraído y ahora importa sus dependencias) ---
-export const EmpleadosSection = ({ user, showNotification, onNavigate, openaiApiKey, aiModel, logActivity, userRole, predefinedOptions, profileToEdit, setProfileToEdit, jobProfiles, setJobProfiles }) => {
+// --- MODIFICACIÓN: Añadida la prop 'refetchJobProfiles' para recargar los datos ---
+export const EmpleadosSection = ({ user, showNotification, onNavigate, openaiApiKey, aiModel, logActivity, userRole, predefinedOptions, profileToEdit, setProfileToEdit, jobProfiles, setJobProfiles, refetchJobProfiles }) => {
     const [view, setView] = useState('list');
     const [selectedProfile, setSelectedProfile] = useState(null);
-    const [loading, setLoading] = useState(false); // Este estado no se usaba, pero lo mantengo por si lo necesitas.
+    const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [profileToDelete, setProfileToDelete] = useState(null);
     const [showGenerator, setShowGenerator] = useState(false);
@@ -25,7 +25,10 @@ export const EmpleadosSection = ({ user, showNotification, onNavigate, openaiApi
     const handleFormSave = () => {
         setView('list');
         setSelectedProfile(null);
-        // Aquí podrías añadir una llamada para recargar los perfiles si fuera necesario
+        // --- MODIFICACIÓN: Llamada para recargar los perfiles ---
+        if (refetchJobProfiles) {
+            refetchJobProfiles();
+        }
     };
     
     const handleDeleteConfirm = async () => {
@@ -78,7 +81,6 @@ export const EmpleadosSection = ({ user, showNotification, onNavigate, openaiApi
     };
 
     const handleExportPDF = (elementRef, fileName) => {
-        // Asumimos que html2canvas y jsPDF están disponibles globalmente
         if (elementRef.current && window.html2canvas && window.jspdf.jsPDF) {
             window.html2canvas(elementRef.current, { scale: 2 }).then((canvas) => {
                 const imgData = canvas.toDataURL('image/png');
@@ -111,8 +113,7 @@ export const EmpleadosSection = ({ user, showNotification, onNavigate, openaiApi
         (profile.nombre_puesto && profile.nombre_puesto.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    // VISTAS CONDICIONALES
-    if (userRole === 'employee' && loading) { // 'loading' viene de la prop, aunque no se usa actualmente
+    if (userRole === 'employee' && loading) {
          return <div className="flex justify-center items-center h-40"><LoaderIcon /></div>;
     }
 
@@ -154,7 +155,6 @@ export const EmpleadosSection = ({ user, showNotification, onNavigate, openaiApi
         );
     }
 
-    // VISTA POR DEFECTO (LISTA)
     return (
         <div>
             {profileToDelete && (
